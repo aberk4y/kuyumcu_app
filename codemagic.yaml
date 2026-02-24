@@ -10,8 +10,14 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Flutter build iOS
+      - name: Flutter build iOS Simulator
         script: |
-          flutter build ios --release --no-codesign
+          # Bu komut sanal telefonlar için derleme yapar
+          flutter build ios --simulator --debug
+      - name: Zip .app for Appetize
+        script: |
+          # Oluşan .app dosyasını zip haline getiriyoruz
+          cd build/ios/iphonesimulator
+          zip -r ios-app.zip Runner.app
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/ios/iphonesimulator/*.zip
