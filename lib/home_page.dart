@@ -340,75 +340,51 @@ class _MainContentState
             /// LIST
             Expanded(
               child: RefreshIndicator(
-                color:
-                const Color(0xFFFFCC00),
+                color: const Color(0xFFFFCC00),
                 onRefresh: _refresh,
                 child: FutureBuilder<dynamic>(
-                    future: selectedCategory == 0 ? pricesFuture : currencyFuture,
-                    builder: (context,
-                        snapshot) {
-                      if (snapshot
-                          .connectionState ==
-                          ConnectionState
-                              .waiting) {
-                        return const Center(
-                            child:
-                            CupertinoActivityIndicator());
-                      }
+                  future: selectedCategory == 0 ? pricesFuture : currencyFuture,
+                  builder: (context, snapshot) {
 
-                      if (snapshot
-                          .hasError) {
-                        return Center(
-                            child: Text(isTR
-                                ? "Veri alınamadı"
-                                : "Failed to load data"));
-                      }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CupertinoActivityIndicator());
+                    }
 
-                      final filtered =
-                      snapshot.data!
-                          .where((p) {
-                        bool matchesCategory =
-                        selectedCategory ==
-                            0
-                            ? (!p.name
-                            .contains(
-                            "USD") &&
-                            !p.name
-                                .contains(
-                                "EUR"))
-                            : (p.name
-                            .contains(
-                            "USD") ||
-                            p.name
-                                .contains(
-                                "EUR"));
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(isTR ? "Veri alınamadı" : "Failed to load data"),
+                      );
+                    }
 
-                        return matchesCategory &&
-                            p.name
-                                .toLowerCase()
-                                .contains(
-                                searchQuery);
+                    List filtered;
+
+                    if (selectedCategory == 0) {
+
+                      final List<Price> prices = snapshot.data as List<Price>;
+
+                      filtered = prices.where((p) {
+                        return p.name
+                            .toLowerCase()
+                            .contains(searchQuery);
                       }).toList();
 
-                      return ListView
-                          .builder(
-                        padding:
-                        const EdgeInsets
-                            .symmetric(
-                            horizontal:
-                            20,
-                            vertical:
-                            10),
-                        itemCount:
-                        filtered.length,
-                        itemBuilder:
-                            (context,
-                            index) =>
-                            selectedCategory == 0
-                                ? _buildPriceCard(filtered[index])
-                                : _buildCurrencyCard(filtered[index]),
-                      );
-                    }),
+                    } else {
+
+                      filtered = snapshot.data;
+
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) =>
+                      selectedCategory == 0
+                          ? _buildPriceCard(filtered[index])
+                          : _buildCurrencyCard(filtered[index]),
+                    );
+                  },
+                ),
               ),
             ),
           ],
