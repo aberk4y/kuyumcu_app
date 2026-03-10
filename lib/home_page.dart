@@ -80,6 +80,7 @@ class _MainContent extends StatefulWidget {
 class _MainContentState
     extends State<_MainContent> {
   late Future<List<Price>> pricesFuture;
+  late Future<List<dynamic>> currencyFuture;
   Timer? _autoRefreshTimer;
 
   int selectedCategory = 0;
@@ -91,6 +92,7 @@ class _MainContentState
   void initState() {
     super.initState();
     pricesFuture = ApiService.fetchPrices();
+    currencyFuture = ApiService.fetchCurrencies();
 
     /// 🔄 30 saniyede otomatik yenileme
     _autoRefreshTimer = Timer.periodic(
@@ -130,6 +132,8 @@ class _MainContentState
     setState(() {
       pricesFuture =
           ApiService.fetchPrices();
+      currencyFuture =
+          ApiService.fetchCurrencies();
     });
   }
 
@@ -339,9 +343,8 @@ class _MainContentState
                 color:
                 const Color(0xFFFFCC00),
                 onRefresh: _refresh,
-                child: FutureBuilder<
-                    List<Price>>(
-                    future: pricesFuture,
+                child: FutureBuilder<dynamic>(
+                    future: selectedCategory == 0 ? pricesFuture : currencyFuture,
                     builder: (context,
                         snapshot) {
                       if (snapshot
@@ -401,9 +404,9 @@ class _MainContentState
                         itemBuilder:
                             (context,
                             index) =>
-                            _buildPriceCard(
-                                filtered[
-                                index]),
+                            selectedCategory == 0
+                                ? _buildPriceCard(filtered[index])
+                                : _buildCurrencyCard(filtered[index]),
                       );
                     }),
               ),
@@ -595,6 +598,54 @@ class _MainContentState
                         .w800)),
           ],
         ),
+      ),
+    );
+
+  }
+
+  Widget _buildCurrencyCard(dynamic item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Text(
+            item["code"],
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          Row(
+            children: [
+              _priceBox(
+                widget.isTurkish ? "Alış" : "Buy",
+                item["buy"],
+              ),
+              const SizedBox(width: 12),
+              _priceBox(
+                widget.isTurkish ? "Satış" : "Sell",
+                item["sell"],
+              ),
+            ],
+          )
+        ],
       ),
     );
   }
