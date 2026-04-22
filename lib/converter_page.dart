@@ -17,7 +17,9 @@ class ConverterPage extends StatefulWidget {
 enum _ConverterMode { currency, gold }
 
 class _ConverterPageState extends State<ConverterPage> {
-  final TextEditingController _amountController = TextEditingController(text: '1');
+  final TextEditingController _amountController = TextEditingController(
+    text: '1',
+  );
 
   List<Price> _prices = const [];
   List<Currency> _currencies = const [];
@@ -84,7 +86,8 @@ class _ConverterPageState extends State<ConverterPage> {
   }
 
   void _ensureDefaults() {
-    if (_prices.isNotEmpty && !_prices.any((price) => price.name == _sourceGold)) {
+    if (_prices.isNotEmpty &&
+        !_prices.any((price) => price.name == _sourceGold)) {
       _sourceGold = _prices.first.name;
     }
 
@@ -128,9 +131,9 @@ class _ConverterPageState extends State<ConverterPage> {
 
   double _calculateGold(double amount, String source, String target) {
     final gold = _prices.cast<Price?>().firstWhere(
-          (price) => price?.name == source,
-          orElse: () => null,
-        );
+      (price) => price?.name == source,
+      orElse: () => null,
+    );
 
     if (gold == null) {
       return 0;
@@ -151,17 +154,19 @@ class _ConverterPageState extends State<ConverterPage> {
     }
 
     final match = _currencies.cast<Currency?>().firstWhere(
-          (currency) => currency?.code == code,
-          orElse: () => null,
-        );
+      (currency) => currency?.code == code,
+      orElse: () => null,
+    );
 
     return match?.sellValue ?? 0;
   }
 
-  String get _sourceCode =>
-      _mode == _ConverterMode.currency ? _sourceCurrency : _shortGoldCode(_sourceGold);
+  String get _sourceCode => _mode == _ConverterMode.currency
+      ? _sourceCurrency
+      : _shortGoldCode(_sourceGold);
 
-  String get _targetCode => _mode == _ConverterMode.currency ? _targetCurrency : _targetGold;
+  String get _targetCode =>
+      _mode == _ConverterMode.currency ? _targetCurrency : _targetGold;
 
   String get _sourceLabel =>
       _mode == _ConverterMode.currency ? 'Kaynak' : _goldLabel(_sourceGold);
@@ -196,77 +201,79 @@ class _ConverterPageState extends State<ConverterPage> {
               child: _loading
                   ? const Center(child: CupertinoActivityIndicator(radius: 16))
                   : _errorMessage != null
-                      ? _ConverterErrorState(
-                          message: _errorMessage!,
-                          onRetry: _loadData,
-                        )
-                      : SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
-                          child: Column(
+                  ? _ConverterErrorState(
+                      message: _errorMessage!,
+                      onRetry: _loadData,
+                    )
+                  : SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+                      child: Column(
+                        children: [
+                          _SelectorPanel(
+                            sourceCode: _sourceCode,
+                            targetCode: _targetCode,
+                            mode: _mode,
+                            onSourceTap: _pickSource,
+                            onTargetTap: _pickTarget,
+                            onSwap: _swapSelection,
+                          ),
+                          const SizedBox(height: 26),
+                          Text(
+                            formatTurkishNumber(
+                              _currentRate,
+                              minDecimals: 2,
+                              maxDecimals: _mode == _ConverterMode.currency
+                                  ? 4
+                                  : 2,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w300,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '1 $_sourceCode = ${formatTurkishNumber(_currentRate, minDecimals: 2, maxDecimals: _mode == _ConverterMode.currency ? 4 : 2)} $_targetCode',
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 26),
+                          Row(
                             children: [
-                              _SelectorPanel(
-                                sourceCode: _sourceCode,
-                                sourceLabel: _sourceLabel,
-                                targetCode: _targetCode,
-                                targetLabel: _targetLabel,
-                                mode: _mode,
-                                currencyToTry: _currencyToTry,
-                                onSourceTap: _pickSource,
-                                onTargetTap: _pickTarget,
-                                onSwap: _swapSelection,
-                              ),
-                              const SizedBox(height: 26),
-                              Text(
-                                formatTurkishNumber(
-                                  _currentRate,
-                                  minDecimals: 2,
-                                  maxDecimals: _mode == _ConverterMode.currency ? 4 : 2,
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 42,
-                                  fontWeight: FontWeight.w300,
-                                  color: AppColors.textPrimary,
+                              Expanded(
+                                child: _InputCard(
+                                  code: _sourceCode,
+                                  controller: _amountController,
+                                  editable: true,
+                                  icon: CupertinoIcons.pencil_outline,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '1 $_sourceCode = ${formatTurkishNumber(_currentRate, minDecimals: 2, maxDecimals: _mode == _ConverterMode.currency ? 4 : 2)} $_targetCode',
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 26),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _InputCard(
-                                      code: _sourceCode,
-                                      controller: _amountController,
-                                      editable: true,
-                                      icon: CupertinoIcons.pencil_outline,
-                                    ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _InputCard(
+                                  code: _targetCode,
+                                  valueText: formatTurkishNumber(
+                                    _result,
+                                    minDecimals: 2,
+                                    maxDecimals:
+                                        _mode == _ConverterMode.currency
+                                        ? 4
+                                        : 2,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _InputCard(
-                                      code: _targetCode,
-                                      valueText: formatTurkishNumber(
-                                        _result,
-                                        minDecimals: 2,
-                                        maxDecimals: _mode == _ConverterMode.currency ? 4 : 2,
-                                      ),
-                                      editable: false,
-                                    ),
-                                  ),
-                                ],
+                                  editable: false,
+                                ),
                               ),
-                              const SizedBox(height: 20),
-                              const _DisclaimerNote(),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 20),
+                          const _DisclaimerNote(),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
@@ -279,7 +286,12 @@ class _ConverterPageState extends State<ConverterPage> {
       final selected = await _showPickerSheet(
         title: 'Kaynak döviz',
         options: _currencies
-            .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
+            .map(
+              (currency) => _PickerOption(
+                code: currency.code,
+                label: currency.displayName,
+              ),
+            )
             .toList(),
         currentCode: _sourceCurrency,
       );
@@ -294,7 +306,10 @@ class _ConverterPageState extends State<ConverterPage> {
     final selected = await _showPickerSheet(
       title: 'Kaynak altın',
       options: _prices
-          .map((price) => _PickerOption(code: price.name, label: _goldLabel(price.name)))
+          .map(
+            (price) =>
+                _PickerOption(code: price.name, label: _goldLabel(price.name)),
+          )
           .toList(),
       currentCode: _sourceGold,
     );
@@ -308,21 +323,33 @@ class _ConverterPageState extends State<ConverterPage> {
   Future<void> _pickTarget() async {
     final options = _mode == _ConverterMode.currency
         ? _currencyToTry
-            ? [const _PickerOption(code: 'TRY', label: 'Türk Lirası')]
-            : _currencies
-                .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
-                .toList()
+              ? [const _PickerOption(code: 'TRY', label: 'Türk Lirası')]
+              : _currencies
+                    .map(
+                      (currency) => _PickerOption(
+                        code: currency.code,
+                        label: currency.displayName,
+                      ),
+                    )
+                    .toList()
         : [
             const _PickerOption(code: 'TRY', label: 'Türk Lirası'),
             ..._currencies
-                .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
+                .map(
+                  (currency) => _PickerOption(
+                    code: currency.code,
+                    label: currency.displayName,
+                  ),
+                )
                 .toList(),
           ];
 
     final selected = await _showPickerSheet(
       title: 'Hedef birim',
       options: options,
-      currentCode: _mode == _ConverterMode.currency ? _targetCurrency : _targetGold,
+      currentCode: _mode == _ConverterMode.currency
+          ? _targetCurrency
+          : _targetGold,
     );
 
     if (selected == null || !mounted) {
@@ -393,7 +420,8 @@ class _ConverterPageState extends State<ConverterPage> {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: options.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final option = options[index];
                       final selected = option.code == currentCode;
@@ -443,7 +471,11 @@ class _ConverterPageState extends State<ConverterPage> {
     return value
         .toLowerCase()
         .split(' ')
-        .map((word) => word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1)}',
+        )
         .join(' ');
   }
 
@@ -471,18 +503,14 @@ class _ConverterHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.royalDark,
-            AppColors.royal,
-            Color(0xFF4326D6),
-          ],
+          colors: [AppColors.royalDark, AppColors.royal, Color(0xFF4326D6)],
         ),
       ),
       child: const Padding(
         padding: EdgeInsets.fromLTRB(16, 18, 16, 18),
         child: Center(
           child: Text(
-            'Çevirici',
+            'Döviz & Altın Çevirici',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
@@ -571,111 +599,72 @@ class _SegmentButton extends StatelessWidget {
 class _SelectorPanel extends StatelessWidget {
   const _SelectorPanel({
     required this.sourceCode,
-    required this.sourceLabel,
     required this.targetCode,
-    required this.targetLabel,
     required this.mode,
-    required this.currencyToTry,
     required this.onSourceTap,
     required this.onTargetTap,
     required this.onSwap,
   });
 
   final String sourceCode;
-  final String sourceLabel;
   final String targetCode;
-  final String targetLabel;
   final _ConverterMode mode;
-  final bool currencyToTry;
   final VoidCallback onSourceTap;
   final VoidCallback onTargetTap;
   final VoidCallback onSwap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 140,
-      child: Stack(
-        alignment: Alignment.center,
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x10000000),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          Positioned.fill(
+          Expanded(
+            child: _ModernSelectorCard(
+              title: "Kaynak",
+              code: sourceCode,
+              onTap: onSourceTap,
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          GestureDetector(
+            onTap: onSwap,
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(28)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x10000000),
-                    blurRadius: 26,
-                    offset: Offset(0, 14),
-                  ),
-                ],
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFF5F1FF),
+                border: Border.all(color: AppColors.royal.withOpacity(.25)),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _SelectorSide(
-                      alignment: CrossAxisAlignment.start,
-                      accentColor: const Color(0xFFCFF3D7),
-                      code: sourceCode,
-                      label: sourceLabel,
-                      onTap: onSourceTap,
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    margin: const EdgeInsets.symmetric(vertical: 24),
-                    color: const Color(0xFFD1EFD8),
-                  ),
-                  Expanded(
-                    child: _SelectorSide(
-                      alignment: CrossAxisAlignment.end,
-                      accentColor: const Color(0xFFE8F7EC),
-                      code: targetCode,
-                      label: targetLabel,
-                      onTap: onTargetTap,
-                    ),
-                  ),
-                ],
+              child: const Icon(
+                Icons.swap_horiz_rounded,
+                color: AppColors.royal,
+                size: 28,
               ),
             ),
           ),
-          InkWell(
-            onTap: onSwap,
-            borderRadius: BorderRadius.circular(28),
-            child: Container(
-              width: 136,
-              height: 44,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(22)),
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFFFFFFFF),
-                    Color(0xFFF1F5FF),
-                  ],
-                ),
-                border: Border.all(color: const Color(0xFFE0E8F6)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x15000000),
-                    blurRadius: 16,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  mode == _ConverterMode.currency
-                      ? (currencyToTry ? 'Döviz → TRY' : 'TRY → Döviz')
-                      : 'Altın ↔ TRY',
-                  style: const TextStyle(
-                    color: AppColors.royal,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: _ModernSelectorCard(
+              title: "Hedef",
+              code: targetCode,
+              onTap: onTargetTap,
             ),
           ),
         ],
@@ -684,58 +673,62 @@ class _SelectorPanel extends StatelessWidget {
   }
 }
 
-class _SelectorSide extends StatelessWidget {
-  const _SelectorSide({
-    required this.alignment,
-    required this.accentColor,
+class _ModernSelectorCard extends StatelessWidget {
+  const _ModernSelectorCard({
+    required this.title,
     required this.code,
-    required this.label,
     required this.onTap,
   });
 
-  final CrossAxisAlignment alignment;
-  final Color accentColor;
+  final String title;
   final String code;
-  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(28),
+    return GestureDetector(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      child: Container(
+        height: 82,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FC),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE4E8F2)),
+        ),
         child: Column(
-          crossAxisAlignment: alignment,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-              decoration: BoxDecoration(
-                color: accentColor,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(
-                code,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.success,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
             Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: alignment == CrossAxisAlignment.start ? TextAlign.left : TextAlign.right,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textMuted,
-                height: 1.1,
-              ),
+              title,
+              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+            ),
+
+            const SizedBox(height: 8),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    code,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 6),
+
+                const Icon(
+                  CupertinoIcons.chevron_down,
+                  size: 16,
+                  color: AppColors.textMuted,
+                ),
+              ],
             ),
           ],
         ),
@@ -781,7 +774,9 @@ class _InputCard extends StatelessWidget {
                       Expanded(
                         child: TextField(
                           controller: controller,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 30,
@@ -824,10 +819,7 @@ class _InputCard extends StatelessWidget {
 }
 
 class _ConverterErrorState extends StatelessWidget {
-  const _ConverterErrorState({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ConverterErrorState({required this.message, required this.onRetry});
 
   final String message;
   final Future<void> Function() onRetry;
@@ -849,10 +841,7 @@ class _ConverterErrorState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 15,
-              ),
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 15),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -873,10 +862,7 @@ class _ConverterErrorState extends StatelessWidget {
 }
 
 class _PickerOption {
-  const _PickerOption({
-    required this.code,
-    required this.label,
-  });
+  const _PickerOption({required this.code, required this.label});
 
   final String code;
   final String label;

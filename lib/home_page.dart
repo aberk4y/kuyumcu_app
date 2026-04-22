@@ -1,8 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'api_service.dart';
 import 'app_theme.dart';
 import 'converter_page.dart';
@@ -20,18 +18,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
-  late final List<Widget> _pages = const [
-    _DashboardPage(),
-    ConverterPage(),
-  ];
+  late final List<Widget> _pages = const [_DashboardPage(), ConverterPage()];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: _MainBottomBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -64,7 +56,7 @@ class _DashboardPageState extends State<_DashboardPage> {
     super.initState();
     _loadDashboard(showLoader: true);
     _refreshTimer = Timer.periodic(
-      const Duration(seconds: 30),
+      const Duration(seconds: 15),
       (_) => _loadDashboard(),
     );
   }
@@ -85,10 +77,7 @@ class _DashboardPageState extends State<_DashboardPage> {
       });
     }
 
-    await Future.wait([
-      _loadPrices(),
-      _loadCurrencies(),
-    ]);
+    await Future.wait([_loadPrices(), _loadCurrencies()]);
   }
 
   Future<void> _loadPrices() async {
@@ -124,10 +113,14 @@ class _DashboardPageState extends State<_DashboardPage> {
       }
 
       const wanted = ['USD', 'EUR', 'GBP'];
-      final filtered = currencies
-          .where((currency) => wanted.contains(currency.code.toUpperCase()))
-          .toList()
-        ..sort((a, b) => wanted.indexOf(a.code).compareTo(wanted.indexOf(b.code)));
+      final filtered =
+          currencies
+              .where((currency) => wanted.contains(currency.code.toUpperCase()))
+              .toList()
+            ..sort(
+              (a, b) =>
+                  wanted.indexOf(a.code).compareTo(wanted.indexOf(b.code)),
+            );
 
       setState(() {
         _currencies = filtered;
@@ -166,15 +159,11 @@ class _DashboardPageState extends State<_DashboardPage> {
                 currencyError: _currencyError,
               ),
             ),
-            const SliverToBoxAdapter(
-              child: _MarketTableHeader(),
-            ),
+            const SliverToBoxAdapter(child: _MarketTableHeader()),
             if (_isLoadingPrices)
               const SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(
-                  child: CupertinoActivityIndicator(radius: 16),
-                ),
+                child: Center(child: CupertinoActivityIndicator(radius: 16)),
               )
             else if (_prices.isNotEmpty)
               SliverPadding(
@@ -194,9 +183,7 @@ class _DashboardPageState extends State<_DashboardPage> {
                   onRetry: _loadDashboard,
                 ),
               ),
-            const SliverToBoxAdapter(
-              child: _DisclaimerNote(),
-            ),
+            const SliverToBoxAdapter(child: _DisclaimerNote()),
           ],
         ),
       ),
@@ -222,15 +209,9 @@ class _DashboardHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.royalDark,
-            AppColors.royal,
-            Color(0xFF4326D6),
-          ],
+          colors: [AppColors.royalDark, AppColors.royal, Color(0xFF4326D6)],
         ),
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
       child: SafeArea(
         bottom: false,
@@ -238,25 +219,48 @@ class _DashboardHeader extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
           child: Column(
             children: [
-              const Column(
+              Column(
                 children: [
-                  Text(
-                    'ASLANOĞLU',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 31,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 6.5,
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [
+                        Color(0xFFFFF4C2),
+                        Color(0xFFFFD86B),
+                        Color(0xFFC9971E),
+                      ],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'ASLANOĞLU',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 34,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 4,
+                        height: 1,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Alanya',
-                    style: TextStyle(
-                      color: Color(0xFFE7E2FF),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2.8,
+
+                  const SizedBox(height: 8),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.12)),
+                    ),
+                    child: const Text(
+                      'Alanya / Antalya',
+                      style: TextStyle(
+                        color: Color(0xFFE7E2FF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
                 ],
@@ -266,24 +270,28 @@ class _DashboardHeader extends StatelessWidget {
                 const SizedBox(
                   height: 92,
                   child: Center(
-                    child: CupertinoActivityIndicator(
-                      color: Colors.white,
-                    ),
+                    child: CupertinoActivityIndicator(color: Colors.white),
                   ),
                 )
               else
                 Row(
                   children: [
                     Expanded(
-                      child: _CurrencyTickerCard(currency: _findCurrency('USD')),
+                      child: _CurrencyTickerCard(
+                        currency: _findCurrency('USD'),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _CurrencyTickerCard(currency: _findCurrency('EUR')),
+                      child: _CurrencyTickerCard(
+                        currency: _findCurrency('EUR'),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _CurrencyTickerCard(currency: _findCurrency('GBP')),
+                      child: _CurrencyTickerCard(
+                        currency: _findCurrency('GBP'),
+                      ),
                     ),
                   ],
                 ),
@@ -327,7 +335,7 @@ class _CurrencyTickerCard extends StatelessWidget {
 
     return Container(
       height: 92,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.08),
         borderRadius: BorderRadius.circular(16),
@@ -345,35 +353,43 @@ class _CurrencyTickerCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            hasData
-                ? formatRawNumber(
-                    currency!.sell,
-                    minDecimals: 3,
-                    maxDecimals: 4,
-                  )
-                : '--',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              height: 1.1,
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                hasData
+                    ? formatRawNumber(
+                        currency!.sell,
+                        minDecimals: 3,
+                        maxDecimals: 4,
+                      )
+                    : '--',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 6),
           Text(
             hasData
                 ? positive
-                    ? '+${formatTurkishNumber(spread, minDecimals: 2, maxDecimals: 4)}'
-                    : formatTurkishNumber(spread, minDecimals: 2, maxDecimals: 4)
+                      ? '+${formatTurkishNumber(spread, minDecimals: 2, maxDecimals: 4)}'
+                      : formatTurkishNumber(
+                          spread,
+                          minDecimals: 2,
+                          maxDecimals: 4,
+                        )
                 : 'Veri yok',
             style: TextStyle(
               color: hasData
                   ? positive
-                      ? const Color(0xFF8FF3AF)
-                      : const Color(0xFFFFB3B3)
+                        ? const Color(0xFF8FF3AF)
+                        : const Color(0xFFFFB3B3)
                   : const Color(0xFFE6E1FF),
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -453,9 +469,7 @@ class _GoldRowCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.line),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.line)),
       ),
       child: Row(
         children: [
@@ -491,6 +505,15 @@ class _GoldRowCard extends StatelessWidget {
                         color: AppColors.textMuted,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    Text(
+                      changeLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: changeColor,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -499,27 +522,22 @@ class _GoldRowCard extends StatelessWidget {
           Expanded(
             flex: 4,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  changeLabel,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: changeColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  formatTurkishNumber(
-                    price.buyWithMarginValue,
-                    minDecimals: 2,
-                    maxDecimals: 2,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    formatTurkishNumber(
+                      price.buyWithMarginValue,
+                      minDecimals: 2,
+                      maxDecimals: 2,
+                    ),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -527,16 +545,19 @@ class _GoldRowCard extends StatelessWidget {
           ),
           Expanded(
             flex: 4,
-            child: Text(
-              formatTurkishNumber(
-                price.sellWithMarginValue,
-                minDecimals: 2,
-                maxDecimals: 2,
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                formatTurkishNumber(
+                  price.sellWithMarginValue,
+                  minDecimals: 2,
+                  maxDecimals: 2,
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -547,10 +568,7 @@ class _GoldRowCard extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorState({required this.message, required this.onRetry});
 
   final String message;
   final Future<void> Function() onRetry;
@@ -571,10 +589,7 @@ class _ErrorState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 15,
-              color: AppColors.textMuted,
-            ),
+            style: const TextStyle(fontSize: 15, color: AppColors.textMuted),
           ),
           const SizedBox(height: 18),
           ElevatedButton(
@@ -594,10 +609,7 @@ class _ErrorState extends StatelessWidget {
 }
 
 class _MainBottomBar extends StatelessWidget {
-  const _MainBottomBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _MainBottomBar({required this.currentIndex, required this.onTap});
 
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -615,9 +627,7 @@ class _MainBottomBar extends StatelessWidget {
         height: 70,
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(color: AppColors.line),
-          ),
+          border: Border(top: BorderSide(color: AppColors.line)),
         ),
         child: Row(
           children: List.generate(items.length, (index) {
@@ -635,15 +645,21 @@ class _MainBottomBar extends StatelessWidget {
                       Icon(
                         item.icon,
                         size: 22,
-                        color: selected ? AppColors.royal : const Color(0xFFC6C9D3),
+                        color: selected
+                            ? AppColors.royal
+                            : const Color(0xFFC6C9D3),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         item.label,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                          color: selected ? AppColors.royal : const Color(0xFFC6C9D3),
+                          fontWeight: selected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: selected
+                              ? AppColors.royal
+                              : const Color(0xFFC6C9D3),
                         ),
                       ),
                     ],
