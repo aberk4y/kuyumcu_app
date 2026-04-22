@@ -29,6 +29,7 @@ class _ConverterPageState extends State<ConverterPage> {
   String _targetCurrency = 'TRY';
   String _sourceGold = 'GRAM ALTIN';
   String _targetGold = 'TRY';
+  bool _currencyToTry = true;
   double _result = 0;
 
   @override
@@ -87,8 +88,18 @@ class _ConverterPageState extends State<ConverterPage> {
       _sourceGold = _prices.first.name;
     }
 
-    if (_sourceCurrency == _targetCurrency) {
-      _targetCurrency = 'TRY';
+    if (_mode == _ConverterMode.currency) {
+      if (_currencyToTry) {
+        _targetCurrency = 'TRY';
+        if (_sourceCurrency == 'TRY') {
+          _sourceCurrency = 'USD';
+        }
+      } else {
+        _sourceCurrency = 'TRY';
+        if (_targetCurrency == 'TRY') {
+          _targetCurrency = 'USD';
+        }
+      }
     }
   }
 
@@ -199,6 +210,8 @@ class _ConverterPageState extends State<ConverterPage> {
                                 sourceLabel: _sourceLabel,
                                 targetCode: _targetCode,
                                 targetLabel: _targetLabel,
+                                mode: _mode,
+                                currencyToTry: _currencyToTry,
                                 onSourceTap: _pickSource,
                                 onTargetTap: _pickTarget,
                                 onSwap: _swapSelection,
@@ -265,12 +278,9 @@ class _ConverterPageState extends State<ConverterPage> {
     if (_mode == _ConverterMode.currency) {
       final selected = await _showPickerSheet(
         title: 'Kaynak döviz',
-        options: [
-          const _PickerOption(code: 'TRY', label: 'Türk Lirası'),
-          ..._currencies
-              .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
-              .toList(),
-        ],
+        options: _currencies
+            .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
+            .toList(),
         currentCode: _sourceCurrency,
       );
 
@@ -296,12 +306,18 @@ class _ConverterPageState extends State<ConverterPage> {
   }
 
   Future<void> _pickTarget() async {
-    final options = [
-      const _PickerOption(code: 'TRY', label: 'Türk Lirası'),
-      ..._currencies
-          .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
-          .toList(),
-    ];
+    final options = _mode == _ConverterMode.currency
+        ? _currencyToTry
+            ? [const _PickerOption(code: 'TRY', label: 'Türk Lirası')]
+            : _currencies
+                .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
+                .toList()
+        : [
+            const _PickerOption(code: 'TRY', label: 'Türk Lirası'),
+            ..._currencies
+                .map((currency) => _PickerOption(code: currency.code, label: currency.displayName))
+                .toList(),
+          ];
 
     final selected = await _showPickerSheet(
       title: 'Hedef birim',
@@ -326,9 +342,16 @@ class _ConverterPageState extends State<ConverterPage> {
   void _swapSelection() {
     if (_mode == _ConverterMode.currency) {
       setState(() {
-        final temp = _sourceCurrency;
-        _sourceCurrency = _targetCurrency;
-        _targetCurrency = temp;
+        _currencyToTry = !_currencyToTry;
+        if (_currencyToTry) {
+          final nextSource = _targetCurrency == 'TRY' ? 'USD' : _targetCurrency;
+          _sourceCurrency = nextSource;
+          _targetCurrency = 'TRY';
+        } else {
+          final nextTarget = _sourceCurrency == 'TRY' ? 'USD' : _sourceCurrency;
+          _sourceCurrency = 'TRY';
+          _targetCurrency = nextTarget;
+        }
       });
     } else {
       setState(() {
@@ -551,6 +574,8 @@ class _SelectorPanel extends StatelessWidget {
     required this.sourceLabel,
     required this.targetCode,
     required this.targetLabel,
+    required this.mode,
+    required this.currencyToTry,
     required this.onSourceTap,
     required this.onTargetTap,
     required this.onSwap,
@@ -560,6 +585,8 @@ class _SelectorPanel extends StatelessWidget {
   final String sourceLabel;
   final String targetCode;
   final String targetLabel;
+  final _ConverterMode mode;
+  final bool currencyToTry;
   final VoidCallback onSourceTap;
   final VoidCallback onTargetTap;
   final VoidCallback onSwap;
@@ -618,12 +645,18 @@ class _SelectorPanel extends StatelessWidget {
             onTap: onSwap,
             borderRadius: BorderRadius.circular(28),
             child: Container(
-              width: 74,
-              height: 42,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(22)),
-                color: Colors.white,
-                boxShadow: [
+              width: 124,
+              height: 48,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(22)),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFFFFFFFF),
+                    Color(0xFFF1F5FF),
+                  ],
+                ),
+                border: Border.all(color: const Color(0xFFE0E8F6)),
+                boxShadow: const [
                   BoxShadow(
                     color: Color(0x15000000),
                     blurRadius: 16,
@@ -631,14 +664,15 @@ class _SelectorPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  '↔',
-                  style: TextStyle(
-                    color: AppColors.success,
-                    fontSize: 26,
+                  mode == _ConverterMode.currency
+                      ? (currencyToTry ? 'Döviz → TRY' : 'TRY → Döviz')
+                      : 'Altın ↔ TRY',
+                  style: const TextStyle(
+                    color: AppColors.royal,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    height: 1,
                   ),
                 ),
               ),

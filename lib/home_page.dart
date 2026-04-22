@@ -238,37 +238,28 @@ class _DashboardHeader extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
           child: Column(
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
-                ),
-                child: const Column(
-                  children: [
-                    Text(
-                      'ASLANOĞLU',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 6,
-                      ),
+              const Column(
+                children: [
+                  Text(
+                    'ASLANOĞLU',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 31,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 6.5,
                     ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Alanya',
-                      style: TextStyle(
-                        color: Color(0xFFE7E2FF),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 2.4,
-                      ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'Alanya',
+                    style: TextStyle(
+                      color: Color(0xFFE7E2FF),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2.8,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               const SizedBox(height: 18),
               if (isLoadingCurrencies)
