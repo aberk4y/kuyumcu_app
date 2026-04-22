@@ -657,7 +657,7 @@ class _SelectorPanel extends StatelessWidget {
                 ],
               ),
               child: const Icon(
-                CupertinoIcons.arrow_left_arrow_right,
+                CupertinoIcons.arrow_2_squarepath,
                 color: AppColors.success,
                 size: 26,
               ),
