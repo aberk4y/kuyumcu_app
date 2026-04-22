@@ -123,7 +123,7 @@ class _DashboardPageState extends State<_DashboardPage> {
         return;
       }
 
-      final wanted = ['USD', 'EUR', 'GBP'];
+      const wanted = ['USD', 'EUR', 'GBP'];
       final filtered = currencies
           .where((currency) => wanted.contains(currency.code.toUpperCase()))
           .toList()
@@ -178,7 +178,7 @@ class _DashboardPageState extends State<_DashboardPage> {
               )
             else if (_prices.isNotEmpty)
               SliverPadding(
-                padding: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: 8),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => _GoldRowCard(price: _prices[index]),
@@ -194,6 +194,9 @@ class _DashboardPageState extends State<_DashboardPage> {
                   onRetry: _loadDashboard,
                 ),
               ),
+            const SliverToBoxAdapter(
+              child: _DisclaimerNote(),
+            ),
           ],
         ),
       ),
@@ -232,31 +235,45 @@ class _DashboardHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
           child: Column(
             children: [
-              const Text(
-                'ASLANOĞLU',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: 5,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.08)),
                 ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Alanya',
-                style: TextStyle(
-                  color: Color(0xFFD9D4FF),
-                  fontSize: 13,
-                  letterSpacing: 1.6,
+                child: const Column(
+                  children: [
+                    Text(
+                      'ASLANOĞLU',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w300,
+                        letterSpacing: 6,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Alanya',
+                      style: TextStyle(
+                        color: Color(0xFFE7E2FF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 18),
               if (isLoadingCurrencies)
                 const SizedBox(
-                  height: 84,
+                  height: 92,
                   child: Center(
                     child: CupertinoActivityIndicator(
                       color: Colors.white,
@@ -267,26 +284,20 @@ class _DashboardHeader extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _CurrencyTickerCard(
-                        currency: _findCurrency('USD'),
-                      ),
+                      child: _CurrencyTickerCard(currency: _findCurrency('USD')),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _CurrencyTickerCard(
-                        currency: _findCurrency('EUR'),
-                      ),
+                      child: _CurrencyTickerCard(currency: _findCurrency('EUR')),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _CurrencyTickerCard(
-                        currency: _findCurrency('GBP'),
-                      ),
+                      child: _CurrencyTickerCard(currency: _findCurrency('GBP')),
                     ),
                   ],
                 ),
               if (currencyError != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Text(
                   currencyError!,
                   style: const TextStyle(
@@ -324,8 +335,8 @@ class _CurrencyTickerCard extends StatelessWidget {
     final positive = spread >= 0;
 
     return Container(
-      height: 84,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      height: 92,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.08),
         borderRadius: BorderRadius.circular(16),
@@ -338,11 +349,11 @@ class _CurrencyTickerCard extends StatelessWidget {
             hasData ? '${currency!.code}TRY' : '--',
             style: const TextStyle(
               color: Color(0xFFD5CEFF),
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 8),
           Text(
             hasData
                 ? formatRawNumber(
@@ -351,13 +362,16 @@ class _CurrencyTickerCard extends StatelessWidget {
                     maxDecimals: 4,
                   )
                 : '--',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 19,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
+              height: 1.1,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             hasData
                 ? positive
@@ -370,8 +384,9 @@ class _CurrencyTickerCard extends StatelessWidget {
                       ? const Color(0xFF8FF3AF)
                       : const Color(0xFFFFB3B3)
                   : const Color(0xFFE6E1FF),
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w600,
+              height: 1.1,
             ),
           ),
         ],
@@ -440,6 +455,8 @@ class _GoldRowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPositive = price.changeValue >= 0;
     final changeColor = isPositive ? AppColors.success : AppColors.danger;
+    final changeLabel =
+        '${isPositive ? '+' : ''}${formatTurkishNumber(price.changeValue, minDecimals: 2, maxDecimals: 2)}%';
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
@@ -457,12 +474,14 @@ class _GoldRowCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _splitName(price.name),
+                  price.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
-                    height: 1.15,
+                    height: 1.1,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -488,26 +507,21 @@ class _GoldRowCard extends StatelessWidget {
           ),
           Expanded(
             flex: 4,
-            child: Text(
-              formatTurkishNumber(
-                price.buyWithMarginValue,
-                minDecimals: 2,
-                maxDecimals: 2,
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 4,
             child: Column(
               children: [
                 Text(
+                  changeLabel,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: changeColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
                   formatTurkishNumber(
-                    price.sellWithMarginValue,
+                    price.buyWithMarginValue,
                     minDecimals: 2,
                     maxDecimals: 2,
                   ),
@@ -517,16 +531,22 @@ class _GoldRowCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '${isPositive ? '+' : ''}${formatTurkishNumber(price.changeValue, minDecimals: 2, maxDecimals: 2)}%',
-                  style: TextStyle(
-                    color: changeColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ],
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(
+              formatTurkishNumber(
+                price.sellWithMarginValue,
+                minDecimals: 2,
+                maxDecimals: 2,
+              ),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -647,6 +667,22 @@ class _MainBottomBar extends StatelessWidget {
   }
 }
 
-String _splitName(String value) {
-  return value.replaceAll(' ', '\n');
+class _DisclaimerNote extends StatelessWidget {
+  const _DisclaimerNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 14, 20, 22),
+      child: Text(
+        'Uygulamada yer alan fiyatlar bilgilendirme amaçlıdır. Güncel alım-satım fiyatları mağaza içi fiyatlara göre değişiklik gösterebilir.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 11,
+          height: 1.45,
+        ),
+      ),
+    );
+  }
 }

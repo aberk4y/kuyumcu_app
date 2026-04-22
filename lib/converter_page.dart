@@ -173,9 +173,7 @@ class _ConverterPageState extends State<ConverterPage> {
       child: SafeArea(
         child: Column(
           children: [
-            _ConverterHeader(
-              onRefreshTap: _loadData,
-            ),
+            const _ConverterHeader(),
             _SegmentSwitcher(
               currentMode: _mode,
               onModeChanged: (mode) {
@@ -251,8 +249,8 @@ class _ConverterPageState extends State<ConverterPage> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 28),
-                              _ConverterHint(mode: _mode),
+                              const SizedBox(height: 20),
+                              const _DisclaimerNote(),
                             ],
                           ),
                         ),
@@ -441,9 +439,7 @@ class _ConverterPageState extends State<ConverterPage> {
 }
 
 class _ConverterHeader extends StatelessWidget {
-  const _ConverterHeader({required this.onRefreshTap});
-
-  final Future<void> Function() onRefreshTap;
+  const _ConverterHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -459,37 +455,18 @@ class _ConverterHeader extends StatelessWidget {
           ],
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
-        child: Row(
-          children: [
-            const Icon(
-              CupertinoIcons.line_horizontal_3,
+      child: const Padding(
+        padding: EdgeInsets.fromLTRB(16, 18, 16, 18),
+        child: Center(
+          child: Text(
+            'Çevirici',
+            textAlign: TextAlign.center,
+            style: TextStyle(
               color: Colors.white,
-              size: 28,
+              fontSize: 19,
+              fontWeight: FontWeight.w700,
             ),
-            const Expanded(
-              child: Text(
-                'Çevirici',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                onRefreshTap();
-              },
-              icon: const Icon(
-                CupertinoIcons.share,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -590,7 +567,7 @@ class _SelectorPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180,
+      height: 146,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -619,12 +596,10 @@ class _SelectorPanel extends StatelessWidget {
                       onTap: onSourceTap,
                     ),
                   ),
-                  const VerticalDivider(
+                  Container(
                     width: 1,
-                    thickness: 1,
-                    color: Color(0xFFD1EFD8),
-                    indent: 26,
-                    endIndent: 26,
+                    margin: const EdgeInsets.symmetric(vertical: 24),
+                    color: const Color(0xFFD1EFD8),
                   ),
                   Expanded(
                     child: _SelectorSide(
@@ -643,10 +618,10 @@ class _SelectorPanel extends StatelessWidget {
             onTap: onSwap,
             borderRadius: BorderRadius.circular(28),
             child: Container(
-              width: 54,
-              height: 54,
+              width: 74,
+              height: 42,
               decoration: const BoxDecoration(
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.all(Radius.circular(22)),
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
@@ -656,10 +631,16 @@ class _SelectorPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(
-                CupertinoIcons.arrow_2_squarepath,
-                color: AppColors.success,
-                size: 26,
+              child: const Center(
+                child: Text(
+                  '↔',
+                  style: TextStyle(
+                    color: AppColors.success,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                  ),
+                ),
               ),
             ),
           ),
@@ -690,13 +671,13 @@ class _SelectorSide extends StatelessWidget {
       borderRadius: BorderRadius.circular(28),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Column(
           crossAxisAlignment: alignment,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: BoxDecoration(
                 color: accentColor,
                 borderRadius: BorderRadius.circular(14),
@@ -704,18 +685,18 @@ class _SelectorSide extends StatelessWidget {
               child: Text(
                 code,
                 style: const TextStyle(
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.w800,
                   color: AppColors.success,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               label,
               textAlign: alignment == CrossAxisAlignment.start ? TextAlign.left : TextAlign.right,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: AppColors.textMuted,
                 height: 1.3,
               ),
@@ -806,37 +787,6 @@ class _InputCard extends StatelessWidget {
   }
 }
 
-class _ConverterHint extends StatelessWidget {
-  const _ConverterHint({required this.mode});
-
-  final _ConverterMode mode;
-
-  @override
-  Widget build(BuildContext context) {
-    final message = mode == _ConverterMode.currency
-        ? 'Döviz çevirileri canlı satış fiyatına göre hesaplanır.'
-        : 'Altın çevirileri marj uygulanmış satış fiyatı üzerinden hesaplanır.';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F3FA),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: AppColors.textMuted,
-          fontSize: 13,
-          height: 1.5,
-        ),
-      ),
-    );
-  }
-}
-
 class _ConverterErrorState extends StatelessWidget {
   const _ConverterErrorState({
     required this.message,
@@ -894,4 +844,24 @@ class _PickerOption {
 
   final String code;
   final String label;
+}
+
+class _DisclaimerNote extends StatelessWidget {
+  const _DisclaimerNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
+      child: Text(
+        'Uygulamada yer alan fiyatlar bilgilendirme amaçlıdır. Güncel alım-satım fiyatları mağaza içi fiyatlara göre değişiklik gösterebilir.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 11,
+          height: 1.45,
+        ),
+      ),
+    );
+  }
 }
