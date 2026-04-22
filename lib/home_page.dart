@@ -18,22 +18,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 1;
+  int _currentIndex = 0;
 
-  late final List<Widget> _pages = [
-    const _MarketPage(marketType: _MarketType.currency),
-    const _MarketPage(marketType: _MarketType.gold),
-    const ConverterPage(),
-    const _ComingSoonPage(
-      title: 'Portföy',
-      message: 'Favori ürünler ve kişisel takip modülü burada yer alacak.',
-      icon: CupertinoIcons.chart_pie_fill,
-    ),
-    const _ComingSoonPage(
-      title: 'Çarşı',
-      message: 'Mağaza duyuruları ve yerel kampanyalar bu alana eklenecek.',
-      icon: CupertinoIcons.bag_fill,
-    ),
+  late final List<Widget> _pages = const [
+    _DashboardPage(),
+    ConverterPage(),
   ];
 
   @override
@@ -43,7 +32,7 @@ class _HomePageState extends State<HomePage> {
         index: _currentIndex,
         children: _pages,
       ),
-      bottomNavigationBar: _HaremBottomBar(
+      bottomNavigationBar: _MainBottomBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
       ),
@@ -51,33 +40,32 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-enum _MarketType { currency, gold }
-
-class _MarketPage extends StatefulWidget {
-  const _MarketPage({required this.marketType});
-
-  final _MarketType marketType;
+class _DashboardPage extends StatefulWidget {
+  const _DashboardPage();
 
   @override
-  State<_MarketPage> createState() => _MarketPageState();
+  State<_DashboardPage> createState() => _DashboardPageState();
 }
 
-class _MarketPageState extends State<_MarketPage> {
+class _DashboardPageState extends State<_DashboardPage> {
   List<Price> _prices = const [];
   List<Currency> _currencies = const [];
-  bool _loading = true;
-  String? _errorMessage;
-  Timer? _refreshTimer;
 
-  bool get _isGoldPage => widget.marketType == _MarketType.gold;
+  bool _isLoadingPrices = true;
+  bool _isLoadingCurrencies = true;
+
+  String? _priceError;
+  String? _currencyError;
+
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    _refreshData(showLoader: true);
+    _loadDashboard(showLoader: true);
     _refreshTimer = Timer.periodic(
       const Duration(seconds: 30),
-      (_) => _refreshData(),
+      (_) => _loadDashboard(),
     );
   }
 
@@ -87,29 +75,33 @@ class _MarketPageState extends State<_MarketPage> {
     super.dispose();
   }
 
-  Future<void> _refreshData({bool showLoader = false}) async {
+  Future<void> _loadDashboard({bool showLoader = false}) async {
     if (showLoader) {
       setState(() {
-        _loading = true;
-        _errorMessage = null;
+        _isLoadingPrices = true;
+        _isLoadingCurrencies = true;
+        _priceError = null;
+        _currencyError = null;
       });
     }
 
-    try {
-      final results = await Future.wait([
-        ApiService.fetchPrices(),
-        ApiService.fetchCurrencies(),
-      ]);
+    await Future.wait([
+      _loadPrices(),
+      _loadCurrencies(),
+    ]);
+  }
 
+  Future<void> _loadPrices() async {
+    try {
+      final prices = await ApiService.fetchPrices();
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _prices = results[0] as List<Price>;
-        _currencies = results[1] as List<Currency>;
-        _loading = false;
-        _errorMessage = null;
+        _prices = prices;
+        _isLoadingPrices = false;
+        _priceError = null;
       });
     } catch (_) {
       if (!mounted) {
@@ -117,71 +109,89 @@ class _MarketPageState extends State<_MarketPage> {
       }
 
       setState(() {
-        _loading = false;
-        _errorMessage = 'Canlı veriler şu anda alınamıyor.';
+        _prices = const [];
+        _isLoadingPrices = false;
+        _priceError = 'Altın verileri şu anda alınamıyor.';
+      });
+    }
+  }
+
+  Future<void> _loadCurrencies() async {
+    try {
+      final currencies = await ApiService.fetchCurrencies();
+      if (!mounted) {
+        return;
+      }
+
+      final wanted = ['USD', 'EUR', 'GBP'];
+      final filtered = currencies
+          .where((currency) => wanted.contains(currency.code.toUpperCase()))
+          .toList()
+        ..sort((a, b) => wanted.indexOf(a.code).compareTo(wanted.indexOf(b.code)));
+
+      setState(() {
+        _currencies = filtered;
+        _isLoadingCurrencies = false;
+        _currencyError = null;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _currencies = const [];
+        _isLoadingCurrencies = false;
+        _currencyError = 'Döviz verileri şu anda alınamıyor.';
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final marketItems = _isGoldPage ? _prices : _currencies;
-
     return Material(
       color: AppColors.background,
       child: RefreshIndicator(
         color: AppColors.accent,
-        onRefresh: _refreshData,
+        onRefresh: _loadDashboard,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
           slivers: [
             SliverToBoxAdapter(
-              child: _MarketHeroHeader(
-                title: 'ASLANOĞLU',
-                currentLabel: _isGoldPage ? 'Altın' : 'Döviz',
+              child: _DashboardHeader(
                 currencies: _currencies,
-                onRefreshTap: _refreshData,
+                isLoadingCurrencies: _isLoadingCurrencies,
+                currencyError: _currencyError,
               ),
             ),
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: _MarketTableHeader(),
             ),
-            if (_loading)
+            if (_isLoadingPrices)
               const SliverFillRemaining(
                 hasScrollBody: false,
                 child: Center(
                   child: CupertinoActivityIndicator(radius: 16),
                 ),
               )
-            else if (_errorMessage != null)
+            else if (_prices.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.only(bottom: 20),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _GoldRowCard(price: _prices[index]),
+                    childCount: _prices.length,
+                  ),
+                ),
+              )
+            else
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: _ErrorState(
-                  message: _errorMessage!,
-                  onRetry: _refreshData,
-                ),
-              )
-            else if (marketItems.isEmpty)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: _EmptyState(),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (_isGoldPage) {
-                        return _GoldRowCard(price: _prices[index]);
-                      }
-
-                      return _CurrencyRowCard(currency: _currencies[index]);
-                    },
-                    childCount: marketItems.length,
-                  ),
+                  message: _priceError ?? 'Altın verileri şu anda alınamıyor.',
+                  onRetry: _loadDashboard,
                 ),
               ),
           ],
@@ -191,23 +201,19 @@ class _MarketPageState extends State<_MarketPage> {
   }
 }
 
-class _MarketHeroHeader extends StatelessWidget {
-  const _MarketHeroHeader({
-    required this.title,
-    required this.currentLabel,
+class _DashboardHeader extends StatelessWidget {
+  const _DashboardHeader({
     required this.currencies,
-    required this.onRefreshTap,
+    required this.isLoadingCurrencies,
+    required this.currencyError,
   });
 
-  final String title;
-  final String currentLabel;
   final List<Currency> currencies;
-  final Future<void> Function() onRefreshTap;
+  final bool isLoadingCurrencies;
+  final String? currencyError;
 
   @override
   Widget build(BuildContext context) {
-    final featuredTickers = currencies.take(3).toList();
-
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -226,55 +232,31 @@ class _MarketHeroHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 20),
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
           child: Column(
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    CupertinoIcons.line_horizontal_3,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 5,
-                          ),
-                        ),
-                        Text(
-                          currentLabel,
-                          style: const TextStyle(
-                            color: Color(0xFFD9D4FF),
-                            fontSize: 12,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      onRefreshTap();
-                    },
-                    icon: const Icon(
-                      CupertinoIcons.bell_fill,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ],
+              const Text(
+                'ASLANOĞLU',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 5,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Alanya',
+                style: TextStyle(
+                  color: Color(0xFFD9D4FF),
+                  fontSize: 13,
+                  letterSpacing: 1.6,
+                ),
               ),
               const SizedBox(height: 18),
-              if (featuredTickers.isEmpty)
+              if (isLoadingCurrencies)
                 const SizedBox(
-                  height: 82,
+                  height: 84,
                   child: Center(
                     child: CupertinoActivityIndicator(
                       color: Colors.white,
@@ -283,37 +265,66 @@ class _MarketHeroHeader extends StatelessWidget {
                 )
               else
                 Row(
-                  children: featuredTickers
-                      .map(
-                        (currency) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: _TickerCard(currency: currency),
-                          ),
-                        ),
-                      )
-                      .toList(),
+                  children: [
+                    Expanded(
+                      child: _CurrencyTickerCard(
+                        currency: _findCurrency('USD'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _CurrencyTickerCard(
+                        currency: _findCurrency('EUR'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _CurrencyTickerCard(
+                        currency: _findCurrency('GBP'),
+                      ),
+                    ),
+                  ],
                 ),
+              if (currencyError != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  currencyError!,
+                  style: const TextStyle(
+                    color: Color(0xFFE6E1FF),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
   }
+
+  Currency? _findCurrency(String code) {
+    for (final currency in currencies) {
+      if (currency.code.toUpperCase() == code) {
+        return currency;
+      }
+    }
+    return null;
+  }
 }
 
-class _TickerCard extends StatelessWidget {
-  const _TickerCard({required this.currency});
+class _CurrencyTickerCard extends StatelessWidget {
+  const _CurrencyTickerCard({required this.currency});
 
-  final Currency currency;
+  final Currency? currency;
 
   @override
   Widget build(BuildContext context) {
-    final spread = currency.sellValue - currency.buyValue;
+    final hasData = currency != null;
+    final spread = hasData ? currency!.sellValue - currency!.buyValue : 0.0;
     final positive = spread >= 0;
 
     return Container(
-      height: 86,
+      height: 84,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.08),
@@ -324,7 +335,7 @@ class _TickerCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${currency.code}TRY',
+            hasData ? '${currency!.code}TRY' : '--',
             style: const TextStyle(
               color: Color(0xFFD5CEFF),
               fontSize: 12,
@@ -333,11 +344,13 @@ class _TickerCard extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            formatRawNumber(
-              currency.sell,
-              minDecimals: 3,
-              maxDecimals: 4,
-            ),
+            hasData
+                ? formatRawNumber(
+                    currency!.sell,
+                    minDecimals: 3,
+                    maxDecimals: 4,
+                  )
+                : '--',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 19,
@@ -345,54 +358,23 @@ class _TickerCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              Text(
-                positive
+          Text(
+            hasData
+                ? positive
                     ? '+${formatTurkishNumber(spread, minDecimals: 2, maxDecimals: 4)}'
-                    : formatTurkishNumber(spread, minDecimals: 2, maxDecimals: 4),
-                style: TextStyle(
-                  color: positive ? const Color(0xFF8FF3AF) : const Color(0xFFFFB3B3),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
-                    _MiniBar(height: 6),
-                    SizedBox(width: 2),
-                    _MiniBar(height: 10),
-                    SizedBox(width: 2),
-                    _MiniBar(height: 5),
-                    SizedBox(width: 2),
-                    _MiniBar(height: 11),
-                  ],
-                ),
-              ),
-            ],
+                    : formatTurkishNumber(spread, minDecimals: 2, maxDecimals: 4)
+                : 'Veri yok',
+            style: TextStyle(
+              color: hasData
+                  ? positive
+                      ? const Color(0xFF8FF3AF)
+                      : const Color(0xFFFFB3B3)
+                  : const Color(0xFFE6E1FF),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MiniBar extends StatelessWidget {
-  const _MiniBar({required this.height});
-
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 6,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.55),
-        borderRadius: BorderRadius.circular(8),
       ),
     );
   }
@@ -553,83 +535,6 @@ class _GoldRowCard extends StatelessWidget {
   }
 }
 
-class _CurrencyRowCard extends StatelessWidget {
-  const _CurrencyRowCard({required this.currency});
-
-  final Currency currency;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.line),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 5,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  currency.code,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  currency.displayName,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 4,
-            child: Text(
-              formatRawNumber(
-                currency.buy,
-                minDecimals: 3,
-                maxDecimals: 4,
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 4,
-            child: Text(
-              formatRawNumber(
-                currency.sell,
-                minDecimals: 3,
-                maxDecimals: 4,
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ErrorState extends StatelessWidget {
   const _ErrorState({
     required this.message,
@@ -677,90 +582,8 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Gösterilecek veri bulunamadı.',
-        style: TextStyle(
-          color: AppColors.textMuted,
-          fontSize: 15,
-        ),
-      ),
-    );
-  }
-}
-
-class _ComingSoonPage extends StatelessWidget {
-  const _ComingSoonPage({
-    required this.title,
-    required this.message,
-    required this.icon,
-  });
-
-  final String title;
-  final String message;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.background,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 30,
-                    offset: Offset(0, 14),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, color: AppColors.royal, size: 42),
-                  const SizedBox(height: 18),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 15,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HaremBottomBar extends StatelessWidget {
-  const _HaremBottomBar({
+class _MainBottomBar extends StatelessWidget {
+  const _MainBottomBar({
     required this.currentIndex,
     required this.onTap,
   });
@@ -771,17 +594,14 @@ class _HaremBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (label: 'Döviz', icon: CupertinoIcons.money_dollar_circle_fill),
-      (label: 'Altın', icon: CupertinoIcons.money_dollar_circle),
+      (label: 'Ana Sayfa', icon: CupertinoIcons.money_dollar_circle_fill),
       (label: 'Çevirici', icon: CupertinoIcons.arrow_2_circlepath_circle_fill),
-      (label: 'Portföy', icon: CupertinoIcons.chart_bar_square_fill),
-      (label: 'Çarşı', icon: CupertinoIcons.bag_fill),
     ];
 
     return SafeArea(
       top: false,
       child: Container(
-        height: 72,
+        height: 70,
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(
@@ -806,7 +626,7 @@ class _HaremBottomBar extends StatelessWidget {
                         size: 22,
                         color: selected ? AppColors.royal : const Color(0xFFC6C9D3),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 6),
                       Text(
                         item.label,
                         style: TextStyle(
