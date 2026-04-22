@@ -164,10 +164,10 @@ class _ConverterPageState extends State<ConverterPage> {
   String get _targetCode => _mode == _ConverterMode.currency ? _targetCurrency : _targetGold;
 
   String get _sourceLabel =>
-      _mode == _ConverterMode.currency ? _currencyLabel(_sourceCurrency) : _goldLabel(_sourceGold);
+      _mode == _ConverterMode.currency ? 'Kaynak' : _goldLabel(_sourceGold);
 
   String get _targetLabel =>
-      _mode == _ConverterMode.currency ? _currencyLabel(_targetCurrency) : _currencyLabel(_targetGold);
+      _mode == _ConverterMode.currency ? 'Hedef' : _currencyLabel(_targetGold);
 
   double get _currentRate {
     if (_mode == _ConverterMode.currency) {
@@ -594,7 +594,7 @@ class _SelectorPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 146,
+      height: 140,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -645,8 +645,8 @@ class _SelectorPanel extends StatelessWidget {
             onTap: onSwap,
             borderRadius: BorderRadius.circular(28),
             child: Container(
-              width: 124,
-              height: 48,
+              width: 136,
+              height: 44,
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(22)),
                 gradient: const LinearGradient(
@@ -671,7 +671,7 @@ class _SelectorPanel extends StatelessWidget {
                       : 'Altın ↔ TRY',
                   style: const TextStyle(
                     color: AppColors.royal,
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -728,11 +728,13 @@ class _SelectorSide extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               textAlign: alignment == CrossAxisAlignment.start ? TextAlign.left : TextAlign.right,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 color: AppColors.textMuted,
-                height: 1.3,
+                height: 1.1,
               ),
             ),
           ],
