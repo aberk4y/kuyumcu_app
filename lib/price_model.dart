@@ -1,3 +1,5 @@
+import 'number_utils.dart';
+
 class Price {
   final String name;
   final String buy;
@@ -5,6 +7,7 @@ class Price {
   final String change;
   final String buyWithMargin;
   final String sellWithMargin;
+  final String lastUpdate;
 
   Price({
     required this.name,
@@ -13,16 +16,34 @@ class Price {
     required this.change,
     required this.buyWithMargin,
     required this.sellWithMargin,
+    required this.lastUpdate,
   });
 
   factory Price.fromJson(Map<String, dynamic> json) {
     return Price(
-      name: json['key'] ?? "",
-      buy: json['buy'] ?? "",
-      sell: json['sell'] ?? "",
-      change: json['percent'] ?? "",
-      buyWithMargin: json['buy_with_margin'] ?? json['buy'] ?? "",
-      sellWithMargin: json['sell_with_margin'] ?? json['sell'] ?? "",
+      name: (json['name'] ?? json['key'] ?? '').toString(),
+      buy: (json['buy'] ?? '').toString(),
+      sell: (json['sell'] ?? '').toString(),
+      change: (json['change'] ?? json['percent'] ?? '0').toString(),
+      buyWithMargin:
+          (json['buy_with_margin'] ?? json['buyWithMargin'] ?? json['buy'] ?? '')
+              .toString(),
+      sellWithMargin:
+          (json['sell_with_margin'] ?? json['sellWithMargin'] ?? json['sell'] ?? '')
+              .toString(),
+      lastUpdate:
+          (json['lastUpdate'] ?? json['last_update'] ?? json['date'] ?? '')
+              .toString(),
     );
   }
+
+  double get buyValue => parseNumericValue(buy);
+
+  double get sellValue => parseNumericValue(sell);
+
+  double get buyWithMarginValue => parseNumericValue(buyWithMargin);
+
+  double get sellWithMarginValue => parseNumericValue(sellWithMargin);
+
+  double get changeValue => parseNumericValue(change);
 }

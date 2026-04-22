@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'app_theme.dart';
 import 'splash_screen.dart';
 
 void main() {
@@ -10,8 +12,10 @@ class KuyumcuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      title: 'Aslanoğlu Kuyumculuk',
       debugShowCheckedModeBanner: false,
+      theme: buildAppTheme(),
       home: const SplashScreen(),
     );
   }
