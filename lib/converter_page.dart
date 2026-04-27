@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'api_service.dart';
 import 'app_theme.dart';
 import 'currency_model.dart';
@@ -190,12 +190,15 @@ class _ConverterPageState extends State<ConverterPage> {
         child: Column(
           children: [
             const _ConverterHeader(),
-            _SegmentSwitcher(
-              currentMode: _mode,
-              onModeChanged: (mode) {
-                setState(() => _mode = mode);
-                _recalculate();
-              },
+            Transform.translate(
+              offset: const Offset(0, -8),
+              child: _SegmentSwitcher(
+                currentMode: _mode,
+                onModeChanged: (mode) {
+                  setState(() => _mode = mode);
+                  _recalculate();
+                },
+              ),
             ),
             Expanded(
               child: _loading
@@ -207,7 +210,7 @@ class _ConverterPageState extends State<ConverterPage> {
                     )
                   : SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
                       child: Column(
                         children: [
                           _SelectorPanel(
@@ -498,27 +501,52 @@ class _ConverterHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 38),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [AppColors.royalDark, AppColors.royal, Color(0xFF4326D6)],
         ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(34),
+          bottomRight: Radius.circular(34),
+        ),
       ),
-      child: const Padding(
-        padding: EdgeInsets.fromLTRB(16, 18, 16, 18),
-        child: Center(
-          child: Text(
-            'Döviz & Altın Çevirici',
-            textAlign: TextAlign.center,
-            style: TextStyle(
+      child: Column(
+        children: [
+          Text(
+            "ASLANOĞLU",
+            style: GoogleFonts.cinzel(
               color: Colors.white,
-              fontSize: 19,
+              fontSize: 30,
               fontWeight: FontWeight.w700,
+              letterSpacing: 2,
             ),
           ),
-        ),
+
+          const SizedBox(height: 12),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.12)),
+            ),
+            child: const Text(
+              "Döviz & Altın Çevirici",
+              style: TextStyle(
+                color: Color(0xFFE7E2FF),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -535,29 +563,90 @@ class _SegmentSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 58,
-      color: Colors.white,
-      child: Row(
-        children: [
-          _SegmentButton(
-            label: 'DÖVİZ',
-            selected: currentMode == _ConverterMode.currency,
-            onTap: () => onModeChanged(_ConverterMode.currency),
+    return Transform.translate(
+      offset: const Offset(0, -18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          height: 58,
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          _SegmentButton(
-            label: 'ALTIN',
-            selected: currentMode == _ConverterMode.gold,
-            onTap: () => onModeChanged(_ConverterMode.gold),
+          child: Stack(
+            children: [
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                alignment: currentMode == _ConverterMode.currency
+                    ? Alignment.centerLeft
+                    : Alignment.centerRight,
+                child: Container(
+                  width: MediaQuery.of(context).size.width / 2.35,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.royalDark, AppColors.royal],
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                ),
+              ),
+
+              Row(
+                children: [
+                  _buildTab(
+                    label: "DÖVİZ",
+                    selected: currentMode == _ConverterMode.currency,
+                    onTap: () => onModeChanged(_ConverterMode.currency),
+                  ),
+                  _buildTab(
+                    label: "ALTIN",
+                    selected: currentMode == _ConverterMode.gold,
+                    onTap: () => onModeChanged(_ConverterMode.gold),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTab({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 250),
+            style: TextStyle(
+              color: selected ? Colors.white : AppColors.textMuted,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+            child: Text(label),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _SegmentButton extends StatelessWidget {
-  const _SegmentButton({
+class _SlidingSegmentButton extends StatelessWidget {
+  const _SlidingSegmentButton({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -569,25 +658,23 @@ class _SegmentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: selected ? AppColors.line : Colors.transparent,
-                width: 3,
-              ),
-            ),
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.royal : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Center(
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? AppColors.textPrimary : AppColors.textMuted,
-              fontSize: 17,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? Colors.white : AppColors.textMuted,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

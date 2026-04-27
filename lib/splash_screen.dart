@@ -1,8 +1,6 @@
 import 'dart:async';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
-
-import 'app_theme.dart';
 import 'home_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 2), () {
+    Timer(const Duration(seconds: 3), () {
       if (!mounted) {
         return;
       }
@@ -100,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(28),
                     child: Image.asset(
-                      'assets/app_icon.png',
+                      'assets/splash_logo.png',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -108,13 +106,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
                 const SizedBox(height: 35),
 
-                const Text(
-                  "ASLANOĞLU",
-                  style: TextStyle(
+                Text(
+                  'ASLANOĞLU',
+                  style: GoogleFonts.cinzel(
                     color: Colors.white,
                     fontSize: 34,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 5,
+                    letterSpacing: 3,
                   ),
                 ),
 
@@ -122,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                 Text(
                   "Alanya / Antalya",
-                  style: TextStyle(
+                  style: GoogleFonts.cinzel(
                     color: Colors.white.withOpacity(0.75),
                     fontSize: 12,
                     letterSpacing: 2,

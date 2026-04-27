@@ -7,6 +7,7 @@ import 'converter_page.dart';
 import 'currency_model.dart';
 import 'number_utils.dart';
 import 'price_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -224,29 +225,29 @@ class _DashboardHeader extends StatelessWidget {
                   ShaderMask(
                     shaderCallback: (bounds) => const LinearGradient(
                       colors: [
-                        Color(0xFFFFF4C2),
-                        Color(0xFFFFD86B),
-                        Color(0xFFC9971E),
+                        Color(0xFFFFFFFF),
+                        Color(0xFFF5F5F5),
+                        Color(0xFFE8E8E8),
                       ],
                     ).createShader(bounds),
-                    child: const Text(
+                    child: Text(
                       'ASLANOĞLU',
-                      style: TextStyle(
+                      style: GoogleFonts.cinzel(
                         color: Colors.white,
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 4,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 3,
                         height: 1,
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
 
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 5,
+                      horizontal: 12,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.08),
@@ -462,6 +463,7 @@ class _GoldRowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPositive = price.changeValue >= 0;
     final changeColor = isPositive ? AppColors.success : AppColors.danger;
+
     final changeLabel =
         '${isPositive ? '+' : ''}${formatTurkishNumber(price.changeValue, minDecimals: 2, maxDecimals: 2)}%';
 
@@ -473,8 +475,9 @@ class _GoldRowCard extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Ürün adı kısmı
           Expanded(
-            flex: 5,
+            flex: 4,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -519,44 +522,48 @@ class _GoldRowCard extends StatelessWidget {
               ],
             ),
           ),
+
+          // Alış fiyatı
           Expanded(
             flex: 4,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    formatTurkishNumber(
-                      price.buyWithMarginValue,
-                      minDecimals: 2,
-                      maxDecimals: 2,
-                    ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  formatTurkishNumber(
+                    price.buyWithMarginValue,
+                    minDecimals: 2,
+                    maxDecimals: 2,
+                  ),
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ],
+              ),
             ),
           ),
+
+          // Satış fiyatı
           Expanded(
             flex: 4,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                formatTurkishNumber(
-                  price.sellWithMarginValue,
-                  minDecimals: 2,
-                  maxDecimals: 2,
-                ),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  formatTurkishNumber(
+                    price.sellWithMarginValue,
+                    minDecimals: 2,
+                    maxDecimals: 2,
+                  ),
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
