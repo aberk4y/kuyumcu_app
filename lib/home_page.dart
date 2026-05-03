@@ -84,9 +84,37 @@ class _DashboardPageState extends State<_DashboardPage> {
   Future<void> _loadPrices() async {
     try {
       final prices = await ApiService.fetchPrices();
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
+
+      // 🔥 SIRALAMA
+      List<String> order = [
+        "GRAM ALTIN",
+        "HAS ALTIN",
+        "22 AYAR",
+        "14 AYAR",
+        "GÜMÜŞ TL",
+        "YENİ ÇEYREK",
+        "ESKİ ÇEYREK",
+        "YENİ YARIM",
+        "ESKİ YARIM",
+        "YENİ TAM",
+        "ESKİ TAM",
+        "YENİ GREMSE",
+        "ESKİ GREMSE",
+      ];
+
+      prices.sort((a, b) {
+        String nameA = a.name.toUpperCase().trim();
+        String nameB = b.name.toUpperCase().trim();
+
+        int indexA = order.indexOf(nameA);
+        int indexB = order.indexOf(nameB);
+
+        if (indexA == -1) indexA = 999;
+        if (indexB == -1) indexB = 999;
+
+        return indexA.compareTo(indexB);
+      });
 
       setState(() {
         _prices = prices;
@@ -94,9 +122,7 @@ class _DashboardPageState extends State<_DashboardPage> {
         _priceError = null;
       });
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
         _prices = const [];
@@ -459,6 +485,39 @@ class _GoldRowCard extends StatelessWidget {
 
   final Price price;
 
+  String getDisplayName(String name) {
+    switch (name.toUpperCase()) {
+      case "GÜMÜŞ TL":
+        return "GÜMÜŞ";
+      case "HAS ALTIN":
+        return "24 AYAR";
+      case "GRAM ALTIN":
+        return "GRAM ALTIN";
+      case "22 AYAR":
+        return "22 AYAR";
+      case "14 AYAR":
+        return "14 AYAR";
+      case "YENİ ÇEYREK":
+        return "YENİ ÇEYREK";
+      case "ESKİ ÇEYREK":
+        return "ESKİ ÇEYREK";
+      case "YENİ YARIM":
+        return "YENİ YARIM";
+      case "ESKİ YARIM":
+        return "ESKİ YARIM";
+      case "YENİ TAM":
+        return "YENİ TAM";
+      case "ESKİ TAM":
+        return "ESKİ TAM";
+      case "YENİ GREMSE":
+        return "YENİ GREMSE";
+      case "ESKİ GREMSE":
+        return "ESKİ GREMSE";
+      default:
+        return name.toUpperCase();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isPositive = price.changeValue >= 0;
@@ -482,7 +541,7 @@ class _GoldRowCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  price.name,
+                  getDisplayName(price.name),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

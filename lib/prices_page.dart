@@ -25,15 +25,12 @@ class PricesPage extends StatelessWidget {
                 color: Colors.black12,
                 blurRadius: 8,
                 offset: Offset(0, 4),
-              )
+              ),
             ],
           ),
           child: const Text(
-            "Canlı fiyatlar burada görünecek",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-            ),
+            "Canlı fiyatlar burada görünmektedir.",
+            style: TextStyle(color: Colors.black, fontSize: 18),
           ),
         ),
       ),

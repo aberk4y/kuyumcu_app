@@ -1,4 +1,4 @@
-package com.aslanoglu.kuyumculuk
+package com.aslanoglu
 
 import io.flutter.embedding.android.FlutterActivity
 
