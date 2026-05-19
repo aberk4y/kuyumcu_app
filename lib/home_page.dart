@@ -89,18 +89,23 @@ class _DashboardPageState extends State<_DashboardPage> {
       // 🔥 SIRALAMA
       List<String> order = [
         "GRAM ALTIN",
-        "HAS ALTIN",
         "22 AYAR",
-        "14 AYAR",
-        "GÜMÜŞ TL",
-        "YENİ ÇEYREK",
         "ESKİ ÇEYREK",
-        "YENİ YARIM",
+        "ESKİ ATA",
+        "GÜMÜŞ TL",
         "ESKİ YARIM",
-        "YENİ TAM",
         "ESKİ TAM",
-        "YENİ GREMSE",
+        "YENİ ÇEYREK",
+        "YENİ YARIM",
+        "YENİ TAM",
+        "YENİ ATA",
+
+        "14 AYAR",
+        "HAS ALTIN",
+        "ESKİ ATA5",
+        "YENİ ATA5",
         "ESKİ GREMSE",
+        "YENİ GREMSE",
       ];
 
       prices.sort((a, b) {
