@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color royal = Color(0xFF2A179D);
-  static const Color royalDark = Color(0xFF1A0F6C);
+  static const Color royal = Color(0xFF0F5132);
+  static const Color royalDark = Color(0xFF0A3D2E);
   static const Color accent = Color(0xFFF4C542);
   static const Color success = Color(0xFF28B463);
   static const Color danger = Color(0xFFE74C3C);

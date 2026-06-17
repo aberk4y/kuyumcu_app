@@ -507,8 +507,8 @@ class _ConverterHeader extends StatelessWidget {
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.royalDark, AppColors.royal, Color(0xFF4326D6)],
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF00150E), Color(0xFF004B33), Color(0xFF11734D)],
         ),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(34),

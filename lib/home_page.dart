@@ -240,8 +240,8 @@ class _DashboardHeader extends StatelessWidget {
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.royalDark, AppColors.royal, Color(0xFF4326D6)],
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF00150E), Color(0xFF004B33), Color(0xFF11734D)],
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
@@ -283,7 +283,7 @@ class _DashboardHeader extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.12)),
+                      border: Border.all(color: Colors.white.withOpacity(0.10)),
                     ),
                     child: const Text(
                       'Alanya / Antalya',
@@ -369,9 +369,9 @@ class _CurrencyTickerCard extends StatelessWidget {
       height: 92,
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withOpacity(0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.14)),
+        border: Border.all(color: Colors.white.withOpacity(0.10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,10 +526,6 @@ class _GoldRowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPositive = price.changeValue >= 0;
-    final changeColor = isPositive ? AppColors.success : AppColors.danger;
-
-    final changeLabel =
-        '${isPositive ? '+' : ''}${formatTurkishNumber(price.changeValue, minDecimals: 2, maxDecimals: 2)}%';
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
@@ -573,13 +569,12 @@ class _GoldRowCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      changeLabel,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: changeColor,
-                      ),
+                    Icon(
+                      isPositive
+                          ? Icons.north_east_rounded
+                          : Icons.south_east_rounded,
+                      size: 16,
+                      color: isPositive ? AppColors.success : AppColors.danger,
                     ),
                   ],
                 ),
