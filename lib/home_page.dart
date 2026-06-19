@@ -391,11 +391,9 @@ class _CurrencyTickerCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 hasData
-                    ? formatRawNumber(
-                        currency!.sell,
-                        minDecimals: 3,
-                        maxDecimals: 4,
-                      )
+                    ? (double.tryParse(currency!.sell) ?? 0.0)
+                          .toStringAsFixed(2)
+                          .replaceAll('.', ',')
                     : '--',
                 style: const TextStyle(
                   color: Colors.white,
@@ -410,12 +408,8 @@ class _CurrencyTickerCard extends StatelessWidget {
           Text(
             hasData
                 ? positive
-                      ? '+${formatTurkishNumber(spread, minDecimals: 2, maxDecimals: 4)}'
-                      : formatTurkishNumber(
-                          spread,
-                          minDecimals: 2,
-                          maxDecimals: 4,
-                        )
+                      ? '+${spread.toStringAsFixed(2).replaceAll('.', ',')}'
+                      : spread.toStringAsFixed(2).replaceAll('.', ',')
                 : 'Veri yok',
             style: TextStyle(
               color: hasData
